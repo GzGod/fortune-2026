@@ -43,10 +43,7 @@ export default function Home() {
     setError("");
 
     try {
-      // 设置较长的超时时间（90秒），因为AI分析需要时间
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 90000);
-
+      // 移除超时限制，让请求自然完成（AI分析需要30-60秒）
       const response = await fetch("/api/fortune", {
         method: "POST",
         headers: {
@@ -60,10 +57,7 @@ export default function Home() {
           birthHour: parseInt(formData.birthHour),
           birthMinute: parseInt(formData.birthMinute),
         }),
-        signal: controller.signal,
       });
-
-      clearTimeout(timeoutId);
 
       const data = await response.json();
 
