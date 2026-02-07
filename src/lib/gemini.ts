@@ -1,8 +1,41 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { FortuneResult, CompatibilityResult } from "./types";
 import { calculateBazi, getBaziStrengthScore, BaziInfo } from "./bazi";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+// 第三方Gemini API配置（硬编码）
+const GEMINI_API_KEY = "sk-MsTCp4N9Zy0kfrpnMSY9WXzickYVqEAeM0Ks8ei4I7Eqz2ze";
+const GEMINI_API_ENDPOINT = "https://max.openai365.top/v1";
+const GEMINI_MODEL = "gemini-3-pro-preview";
+
+/**
+ * 调用第三方Gemini API（OpenAI兼容格式）
+ */
+async function callGeminiAPI(prompt: string): Promise<string> {
+  const response = await fetch(`${GEMINI_API_ENDPOINT}/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${GEMINI_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: GEMINI_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      temperature: 0.7,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Gemini API error: ${response.status} ${errorText}`);
+  }
+
+  const data = await response.json();
+  return data.choices[0]?.message?.content || "";
+}
 
 export async function generateFortuneReport(
   nickname: string,
@@ -23,8 +56,6 @@ export async function generateFortuneReport(
   const elementsInfo = Object.entries(baziInfo.elements)
     .map(([el, count]) => `${el}:${count}`)
     .join(", ");
-
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
   const prompt = `你是一位精通中国传统命理学的大师，特别擅长八字财运分析。请根据以下详细八字信息，为用户预测2026年（丙午蛇年）的财运。
 
@@ -55,9 +86,7 @@ export async function generateFortuneReport(
 4. 建议要实用，与用户的五行特点相关`;
 
   try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    const text = await callGeminiAPI(prompt);
 
     // 提取JSON
     const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -151,8 +180,6 @@ export async function generateCompatibilityReport(
   const elements1 = Object.entries(baziInfo1.elements).map(([el, count]) => `${el}:${count}`).join(", ");
   const elements2 = Object.entries(baziInfo2.elements).map(([el, count]) => `${el}:${count}`).join(", ");
 
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
   const prompt = `你是一位精通中国传统命理学的大师，特别擅长八字合盘分析。请分析以下两人的财运合盘：
 
 用户1信息：
@@ -185,9 +212,7 @@ export async function generateCompatibilityReport(
 4. 合盘分数要合理反映五行配合度`;
 
   try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    const text = await callGeminiAPI(prompt);
     
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
