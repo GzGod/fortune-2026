@@ -50,8 +50,10 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error generating fortune:", error);
+    const errorMessage = error instanceof Error ? error.message : "未知错误";
+    console.error("Error details:", errorMessage);
     return NextResponse.json(
-      { error: "生成报告失败，请重试" },
+      { error: "生成报告失败，请重试", details: errorMessage },
       { status: 500 }
     );
   }

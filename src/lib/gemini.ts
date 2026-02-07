@@ -10,6 +10,9 @@ const GEMINI_MODEL = "gemini-3-pro-preview";
  * 调用第三方Gemini API（OpenAI兼容格式）
  */
 async function callGeminiAPI(prompt: string): Promise<string> {
+  console.log("Calling Gemini API:", GEMINI_API_ENDPOINT);
+  console.log("Model:", GEMINI_MODEL);
+
   const response = await fetch(`${GEMINI_API_ENDPOINT}/chat/completions`, {
     method: "POST",
     headers: {
@@ -28,13 +31,23 @@ async function callGeminiAPI(prompt: string): Promise<string> {
     }),
   });
 
+  console.log("API Response status:", response.status);
+
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Gemini API error: ${response.status} ${errorText}`);
+    console.error("API Error Response:", errorText);
+    throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
   }
 
   const data = await response.json();
-  return data.choices[0]?.message?.content || "";
+  console.log("API Response data:", JSON.stringify(data).substring(0, 200));
+
+  if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+    console.error("Unexpected API response structure:", data);
+    throw new Error("Invalid API response structure");
+  }
+
+  return data.choices[0].message.content || "";
 }
 
 export async function generateFortuneReport(
