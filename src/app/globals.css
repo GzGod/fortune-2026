@@ -1,0 +1,169 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --fortune-red: #c41e3a;
+  --fortune-gold: #ffd700;
+  --fortune-dark: #1a1a2e;
+}
+
+body {
+  background: linear-gradient(135deg, #1a1a2e 0%, #2d1f3d 100%);
+  min-height: 100vh;
+}
+
+/* 春节风格输入框 */
+.fortune-input {
+  @apply w-full px-4 py-3 bg-white/10 border-2 border-fortune-gold/30 rounded-lg text-white placeholder-white/50 focus:border-fortune-gold focus:outline-none transition-all;
+}
+
+/* 金色按钮 */
+.fortune-btn {
+  @apply px-8 py-3 bg-gradient-to-r from-fortune-gold to-yellow-500 text-fortune-dark font-bold rounded-lg shadow-lg hover:shadow-fortune-gold/50 hover:scale-105 transition-all duration-300;
+}
+
+/* 红色按钮 */
+.fortune-btn-red {
+  @apply px-8 py-3 bg-gradient-to-r from-fortune-red to-red-600 text-white font-bold rounded-lg shadow-lg hover:shadow-fortune-red/50 hover:scale-105 transition-all duration-300;
+}
+
+/* 卡片样式 */
+.fortune-card {
+  @apply bg-gradient-to-br from-fortune-red/20 to-fortune-gold/10 backdrop-blur-md border border-fortune-gold/30 rounded-2xl p-6 shadow-2xl;
+}
+
+/* 春节装饰边框 */
+.fortune-border {
+  border: 3px solid;
+  border-image: linear-gradient(135deg, #c41e3a, #ffd700) 1;
+}
+
+/* 闪烁动画 */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,215,0,0.3), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* 金币闪光动画 */
+@keyframes goldGlow {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5),
+                 0 0 20px rgba(255, 215, 0, 0.3),
+                 0 0 30px rgba(255, 215, 0, 0.2);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.8),
+                 0 0 40px rgba(255, 215, 0, 0.5),
+                 0 0 60px rgba(255, 215, 0, 0.3);
+  }
+}
+
+.gold-glow {
+  animation: goldGlow 2s ease-in-out infinite;
+}
+
+/* 浮动动画 */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.float-animation {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* 旋转闪烁动画 */
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1) rotate(180deg);
+  }
+}
+
+.sparkle {
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+/* 春节装饰 - 灯笼摆动 */
+@keyframes lanternSwing {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
+.lantern-swing {
+  animation: lanternSwing 3s ease-in-out infinite;
+}
+
+/* 脉冲动画 */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+.pulse-animation {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* 二维码装饰边框 */
+.qr-decoration {
+  position: relative;
+  padding: 8px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+}
+
+.qr-decoration::before,
+.qr-decoration::after {
+  content: '✨';
+  position: absolute;
+  font-size: 20px;
+  opacity: 0.8;
+}
+
+.qr-decoration::before {
+  top: -8px;
+  left: -8px;
+}
+
+.qr-decoration::after {
+  bottom: -8px;
+  right: -8px;
+}
+
+/* 排行榜项目 */
+.rank-item {
+  @apply flex items-center justify-between p-4 bg-white/5 rounded-lg border border-fortune-gold/20 hover:bg-white/10 transition-all;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #c41e3a, #ffd700);
+  border-radius: 4px;
+}
