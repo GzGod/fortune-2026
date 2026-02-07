@@ -4,7 +4,7 @@ import { calculateBazi, getBaziStrengthScore, BaziInfo } from "./bazi";
 // 第三方Gemini API配置（硬编码）
 const GEMINI_API_KEY = "sk-MsTCp4N9Zy0kfrpnMSY9WXzickYVqEAeM0Ks8ei4I7Eqz2ze";
 const GEMINI_API_ENDPOINT = "https://max.openai365.top/v1";
-const GEMINI_MODEL = "gemini-3-pro-preview";
+const GEMINI_MODEL = "gemini-2.0-flash-exp"; // 使用更快的flash模型
 
 /**
  * 调用第三方Gemini API（OpenAI兼容格式）
@@ -27,7 +27,7 @@ async function callGeminiAPI(prompt: string): Promise<string> {
           content: prompt,
         },
       ],
-      temperature: 0.7,
+      temperature: 0.3, // 降低温度以提高速度
     }),
   });
 
@@ -65,38 +65,21 @@ export async function generateFortuneReport(
   // 计算八字强度分数，用于财运基础值
   const strengthScore = getBaziStrengthScore(baziInfo);
 
-  // 五行统计信息
-  const elementsInfo = Object.entries(baziInfo.elements)
-    .map(([el, count]) => `${el}:${count}`)
-    .join(", ");
+  const prompt = `根据八字预测2026年财运，直接返回JSON（无其他文字）：
 
-  const prompt = `你是一位精通中国传统命理学的大师，特别擅长八字财运分析。请根据以下详细八字信息，为用户预测2026年（丙午蛇年）的财运。
+八字: ${baziString}
+日主: ${baziInfo.dayMaster}(${baziInfo.dayMasterElement})
+用神: ${baziInfo.favorableElement}
 
-用户信息：
-- 昵称: ${nickname}
-- 出生时间: ${birthYear}年${birthMonth}月${birthDay}日${birthHour}时${birthMinute}分
-- 八字: ${baziString}
-- 日主: ${baziInfo.dayMaster}（${baziInfo.dayMasterElement}）
-- 五行分布: ${elementsInfo}
-- 用神: ${baziInfo.favorableElement}
-- 旺相五行: ${baziInfo.strongElements.join("、") || "无"}
-- 衰弱五行: ${baziInfo.weakElements.join("、") || "无"}
-
-请以JSON格式返回以下信息（只返回JSON，不要有其他文字）：
+JSON格式：
 {
-  "fortuneAmount": <number, 2026年预测可获得的财富总量，单位万元人民币，范围${Math.max(50, strengthScore * 30)}-${strengthScore * 50}，根据日主强弱、用神得力、五行平衡度来综合判断>,
-  "peakMonth": <number, 1-12, 财运最旺的月份，优先考虑与用神相关的月份>,
-  "peakDescription": "<string, 对巅峰月份的简短描述，20字以内，需结合五行特点>",
-  "analysis": "<string, 详细的财运分析，150-200字，包含：1)日主${baziInfo.dayMaster}(${baziInfo.dayMasterElement})在2026年的状态 2)用神${baziInfo.favorableElement}的作用 3)五行平衡对财运的影响 4)具体的财运走势>",
-  "luckyElements": ["<string, 与用神${baziInfo.favorableElement}相关的开运要素1>", "<string, 开运要素2>", "<string, 开运要素3>"],
-  "advice": "<string, 2026年招财建议，60字以内，结合五行特点给出实用建议>"
-}
-
-注意：
-1. 财富数量要基于八字强弱合理计算，体现个性化差异
-2. 分析要专业，融合五行生克理论和春节元素
-3. 保持积极正面但客观的语气
-4. 建议要实用，与用户的五行特点相关`;
+  "fortuneAmount": <number, ${Math.max(50, strengthScore * 30)}-${strengthScore * 50}万元>,
+  "peakMonth": <number, 1-12月>,
+  "peakDescription": "<15字内描述>",
+  "analysis": "<80-100字分析>",
+  "luckyElements": ["<开运要素1>", "<开运要素2>", "<开运要素3>"],
+  "advice": "<40字内建议>"
+}`;
 
   try {
     const text = await callGeminiAPI(prompt);
@@ -189,40 +172,19 @@ export async function generateCompatibilityReport(
   const baziString1 = `${baziInfo1.yearString} ${baziInfo1.monthString} ${baziInfo1.dayString} ${baziInfo1.hourString}`;
   const baziString2 = `${baziInfo2.yearString} ${baziInfo2.monthString} ${baziInfo2.dayString} ${baziInfo2.hourString}`;
 
-  // 五行信息
-  const elements1 = Object.entries(baziInfo1.elements).map(([el, count]) => `${el}:${count}`).join(", ");
-  const elements2 = Object.entries(baziInfo2.elements).map(([el, count]) => `${el}:${count}`).join(", ");
+  const prompt = `分析两人2026年财运合盘，直接返回JSON：
 
-  const prompt = `你是一位精通中国传统命理学的大师，特别擅长八字合盘分析。请分析以下两人的财运合盘：
+${user1.nickname}: ${baziString1}, 日主${baziInfo1.dayMaster}(${baziInfo1.dayMasterElement}), 用神${baziInfo1.favorableElement}
+${user2.nickname}: ${baziString2}, 日主${baziInfo2.dayMaster}(${baziInfo2.dayMasterElement}), 用神${baziInfo2.favorableElement}
 
-用户1信息：
-- 昵称: ${user1.nickname}
-- 八字: ${baziString1}
-- 日主: ${baziInfo1.dayMaster}（${baziInfo1.dayMasterElement}）
-- 五行分布: ${elements1}
-- 用神: ${baziInfo1.favorableElement}
-
-用户2信息：
-- 昵称: ${user2.nickname}
-- 八字: ${baziString2}
-- 日主: ${baziInfo2.dayMaster}（${baziInfo2.dayMasterElement}）
-- 五行分布: ${elements2}
-- 用神: ${baziInfo2.favorableElement}
-
-请以JSON格式返回两人在2026年（丙午蛇年）的财运合盘分析（只返回JSON，不要有其他文字）：
+JSON格式：
 {
-  "score": <number, 0-100, 财运合盘分数，基于：1)两人日主五行的生克关系 2)用神是否互补 3)五行平衡度的配合>,
-  "analysis": "<string, 详细的合盘分析，180-250字，说明：1)两人日主的相互作用 2)五行互补情况 3)用神配合度 4)2026年的财运走势>",
-  "strengths": ["<string, 基于五行相生的优势1>", "<string, 优势2>", "<string, 优势3>"],
-  "challenges": ["<string, 基于五行相克的挑战1>", "<string, 挑战2>"],
-  "advice": "<string, 2026年合作/共同理财建议，80字以内，结合两人五行特点>"
-}
-
-注意：
-1. 分析要专业，融入五行生克理论
-2. 结合两人的日主、用神特点给出个性化建议
-3. 保持积极正面但客观的语气
-4. 合盘分数要合理反映五行配合度`;
+  "score": <number, 0-100>,
+  "analysis": "<80-120字分析>",
+  "strengths": ["<优势1>", "<优势2>", "<优势3>"],
+  "challenges": ["<挑战1>", "<挑战2>"],
+  "advice": "<50字内建议>"
+}`;
 
   try {
     const text = await callGeminiAPI(prompt);
